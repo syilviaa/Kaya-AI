@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaya</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:       linear-gradient(135deg, #0f1117 0%, #1a1d23 100%);
+  --surface:  linear-gradient(135deg, #181b22 0%, #20242a 100%);
+  --border:   #252830;
+  --text:     #ffffff;
+  --muted:    #8b949e;
+  --subtle:   #2a2d36;
+  --green:    #22c55e;
+  --yellow:   #eab308;
+  --orange:   #f97316;
+  --red:      #ef4444;
+  --blue:     #3b82f6;
+  --purple:   #8b5cf6;
+  --glow:     rgba(59, 130, 246, 0.3);
+}
+
+html, body {
+  min-height: 750px;
+  min-width: 390px;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+  background: var(--bg);
+  /* Windows desktop app - no macOS padding needed */
+  user-select: none;
+}
+
+/* ── screens ── */
+.screen {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+.screen.hidden { display: none !important; }
+
+button {
+  cursor: pointer; border: none; outline: none; background: none;
+  font-family: inherit; font-size: inherit; color: inherit;
+}
+
+/* ══════════════════ ONBOARDING ══════════════════ */
+#onboard {
+  padding: 40px 28px 28px;
+  gap: 24px;
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+}
+
+.ob-wordmark {
+  font-size: 18px; font-weight: 600; color: var(--text);
+  margin-top: 20px; /* Added margin to lower the logo in onboarding */
+}
+.ob-sub {
+  font-size: 13px; color: var(--muted); line-height: 1.6; margin-top: 6px;
+}
+
+.ob-features { display: flex; flex-direction: column; gap: 18px; }
+.ob-feat {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.ob-feat-icon {
+  width: 18px; height: 18px; margin-top: 1px; flex-shrink: 0;
+  color: var(--muted);
+}
+.ob-feat-text { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.ob-feat-text strong { color: var(--text); font-weight: 500; display: block; margin-bottom: 2px; }
+
+.ob-setup {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.ob-setup-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; gap: 12px;
+}
+.ob-setup-label { font-size: 12px; font-weight: 500; color: var(--text); }
+.ob-setup-desc  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.ob-setup-badge {
+  font-size: 11px; font-weight: 500; padding: 3px 8px;
+  border-radius: 4px; white-space: nowrap; flex-shrink: 0;
+  transition: background .2s, color .2s;
+}
+.ob-setup-badge.ok      { background: rgba(34,197,94,.12); color: var(--green); }
+.ob-setup-badge.pending { background: rgba(234,179,8,.1);  color: var(--yellow); }
+.ob-setup-divider { height: 1px; background: var(--border); margin: 0 14px; }
+.ob-setup-btn {
+  display: block; width: 100%; padding: 10px 14px;
+  font-size: 12px; font-weight: 500; color: var(--muted);
+  text-align: left; transition: color .15s;
+}
+.ob-setup-btn:hover { color: var(--text); }
+
+.ob-cta {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 13px; font-weight: 600; color: var(--text);
+  text-align: center;
+  transition: background .15s, border-color .15s;
+}
+.ob-cta:hover { background: var(--subtle); border-color: #3a3d48; }
+.ob-cta:active { background: #2a2d36; }
+
+/* ══════════════════ DASHBOARD ══════════════════ */
+#dash {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+/* header */
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 24px 18px 15px; /* Increased top padding to lower the logo */
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.header-title { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.header-right  { display: flex; align-items: center; gap: 10px; }
+.local-badge {
+  font-size: 11px; color: var(--muted);
+  display: flex; align-items: center; gap: 5px;
+}
+.local-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+.gear-btn { font-size: 14px; color: var(--muted); padding: 2px; transition: color .15s; }
+.gear-btn:hover { color: var(--text); }
+
+/* score section */
+.score-section {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 32px 18px 24px; flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(24, 27, 34, 0.8) 0%, rgba(32, 36, 42, 0.8) 100%);
+  position: relative;
+  overflow: hidden;
+}
+.score-section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at center, var(--glow) 0%, transparent 70%);
+  opacity: 0.3;
+  pointer-events: none;
+}
+.score-num {
+  font-size: 72px; font-weight: 800; font-variant-numeric: tabular-nums;
+  letter-spacing: -3px; line-height: 1;
+  transition: all .4s ease;
+  text-shadow: 0 0 20px currentColor;
+  position: relative;
+  z-index: 1;
+}
+.score-denom { 
+  font-size: 12px; color: var(--muted); margin-top: 6px; 
+  text-transform: uppercase; letter-spacing: 0.5px;
+  position: relative;
+  z-index: 1;
+}
+.score-status {
+  margin-top: 12px;
+  font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  padding: 6px 14px; border-radius: 20px;
+  transition: all .4s ease;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 1;
+}
+
+/* sparkline */
+.spark-section {
+  padding: 0 18px; flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+}
+.spark-inner {
+  height: 36px; position: relative; overflow: hidden;
+}
+.spark-svg { width: 100%; height: 100%; display: block; }
+
+@keyframes pulse-fill {
+  0% { opacity: 0.8; }
+  50% { opacity: 1; }
+  100% { opacity: 0.8; }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.demo-loading {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--orange);
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* signals table */
+.signals { 
+  flex-shrink: 0; 
+  border-bottom: 1px solid var(--border); 
+  background: linear-gradient(135deg, rgba(24, 27, 34, 0.5) 0%, rgba(32, 36, 42, 0.5) 100%);
+}
+.signal-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid rgba(37, 40, 48, 0.5);
+  transition: background 0.2s ease;
+}
+.signal-row:hover {
+  background: rgba(59, 130, 246, 0.05);
+}
+.signal-row:last-child { border-bottom: none; }
+.signal-name { 
+  font-size: 12px; 
+  color: var(--text); 
+  width: 128px; 
+  flex-shrink: 0;
+  font-weight: 500;
+}
+.signal-bar-wrap { 
+  flex: 1; 
+  height: 6px; 
+  background: rgba(255, 255, 255, 0.1); 
+  border-radius: 3px; 
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.signal-bar {
+  height: 100%; 
+  border-radius: 2px; 
+  width: 0%;
+  transition: width .4s ease, background .3s ease;
+  background: linear-gradient(90deg, var(--blue) 0%, var(--purple) 100%);
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+}
+.signal-val { 
+  font-size: 12px; 
+  color: var(--text); 
+  width: 72px; 
+  text-align: right; 
+  flex-shrink: 0; 
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* activity feed */
+.feed { flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 150px; }
+.feed-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.feed-title { font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.feed-body { flex: 1; overflow-y: auto; }
+.feed-body::-webkit-scrollbar { display: none; }
+.feed-row {
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.feed-row:last-child { border-bottom: none; }
+.feed-time { font-size: 11px; color: var(--muted); width: 40px; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.feed-msg  { font-size: 13px; color: var(--text); flex: 1; }
+.feed-delta { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.feed-empty { padding: 20px 18px; font-size: 13px; color: var(--muted); }
+
+/* bottom */
+.bottom {
+  flex-shrink: 0; 
+  border-top: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(24, 27, 34, 0.8) 0%, rgba(32, 36, 42, 0.8) 100%);
+}
+.stats-row {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  border-bottom: 1px solid rgba(37, 40, 48, 0.5);
+}
+.stat {
+  padding: 12px 18px; 
+  border-right: 1px solid rgba(37, 40, 48, 0.5);
+  text-align: center;
+  position: relative;
+}
+.stat::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%; transform: translateX(-50%);
+  width: 40px; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--blue) 50%, transparent 100%);
+  opacity: 0.3;
+}
+.stat:last-child { border-right: none; }
+.stat-lbl { 
+  font-size: 10px; 
+  color: var(--muted); 
+  text-transform: uppercase; 
+  letter-spacing: .08em;
+  font-weight: 500;
+}
+.stat-val  { 
+  font-size: 18px; 
+  font-weight: 700; 
+  font-variant-numeric: tabular-nums; 
+  margin-top: 2px;
+  color: var(--text);
+  text-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+}
+.stat-unit { 
+  font-size: 10px; 
+  color: var(--muted); 
+  margin-left: 2px;
+  font-weight: 500;
+}
+
+.actions {
+  display: flex; gap: 8px;
+  background: rgba(15, 17, 23, 0.9);
+  padding: 8px;
+}
+.action-btn {
+  flex: 1; padding: 8px 12px;
+  font-size: 11px; font-weight: 600; color: var(--text);
+  text-align: center;
+  border-radius: 6px;
+  transition: all .2s ease;
+  cursor: pointer;
+  background: linear-gradient(135deg, rgba(24, 27, 34, 0.8) 0%, rgba(32, 36, 42, 0.8) 100%);
+  position: relative;
+  border: 1px solid rgba(37, 40, 48, 0.5);
+  overflow: hidden;
+}
+.action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+  transition: left .4s ease;
+}
+.action-btn:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+  color: var(--blue);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+.action-btn:hover::before {
+  left: 100%;
+}
+.action-btn:hover:not(:disabled) { background: var(--surface); color: var(--text); }
+.action-btn:active:not(:disabled) { background: var(--subtle); }
+.action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.action-btn.primary { color: var(--text); }
+
+/* break overlay */
+.break-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100vw; height: 100vh;
+  background: #0f1117;
+  display: none; flex-direction: column; z-index: 9999;
+  align-items: center; justify-content: center; text-align: center; padding: 40px;
+  gap: 14px;
+}
+.break-overlay.show { display: flex; }
+.break-title  { font-size: 22px; font-weight: 700; }
+.break-sub    { font-size: 13px; color: var(--muted); line-height: 1.6; max-width: 260px; }
+.break-timer  {
+  font-size: 52px; font-weight: 800; font-variant-numeric: tabular-nums;
+  color: var(--green); letter-spacing: -3px; margin: 8px 0;
+  background: none; border: none; outline: none; text-align: center;
+  width: 180px; caret-color: var(--green);
+  font-family: inherit;
+}
+.break-timer:focus { border-bottom: 2px solid var(--green); }
+.break-timer-hint { font-size: 11px; color: var(--muted); margin-top: -8px; }
+.break-dismiss {
+  margin-top: 8px; padding: 10px 28px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--surface);
+  font-size: 13px; font-weight: 500; color: var(--text); cursor: pointer;
+  transition: background .15s;
+}
+.break-dismiss:hover { background: var(--subtle); }
+
+/* ══════════════════ TRAINING BANNER ══════════════════ */
+.train-banner {
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 20px 18px; flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.1) 0%, rgba(249, 115, 22, 0.05) 100%);
+  border-left: 4px solid var(--yellow);
+  position: relative;
+  overflow: hidden;
+  transition: all .6s ease;
+}
+.train-banner::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(45deg, transparent 30%, rgba(234, 179, 8, 0.05) 50%, transparent 70%);
+  animation: shimmer 3s infinite;
+}
+.train-banner.hidden {
+  display: none;
+  animation: slideIn .6s ease reverse;
+}
+.train-label {
+  font-size: 14px; font-weight: 700; color: var(--yellow);
+  text-shadow: 0 0 10px rgba(234, 179, 8, 0.5);
+  position: relative;
+  z-index: 1;
+}
+.train-info { 
+  display: flex; flex-direction: column; gap: 10px;
+  position: relative;
+  z-index: 1;
+}
+.train-mode {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 12px;
+}
+.train-mode-label {
+  color: var(--text);
+  font-weight: 500;
+}
+.train-progress-bar {
+  flex: 1; height: 8px; position: relative;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px; overflow: hidden;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+.train-progress-bar-fill {
+  position: absolute; left: 0; top: 0; height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--yellow) 0%, var(--orange) 100%);
+  border-radius: 3px;
+  transition: width .6s ease;
+  box-shadow: 0 0 8px rgba(234, 179, 8, 0.4);
+  animation: pulse-fill 1.5s ease-in-out infinite;
+}
+.train-count {
+  color: var(--muted); width: 44px; text-align: right; flex-shrink: 0;
+  font-weight: 600; font-variant-numeric: tabular-nums;
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ ONBOARDING ══════════ -->
+<div class="screen hidden" id="onboard">
+  <div class="ob-wordmark">
+    KAYA
+    <div class="ob-sub">Monitors typing patterns to detect early signs of burnout and stress. Nothing leaves this machine.</div>
+  </div>
+
+  <div class="ob-features">
+    <div class="ob-feat">
+      <svg class="ob-feat-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="3" width="12" height="12" rx="2"/>
+        <path d="M6 9l2 2 4-4"/>
+      </svg>
+      <div class="ob-feat-text">
+        <strong>Fully local</strong>
+        No data leaves your Mac. No account, no cloud, no telemetry.
+      </div>
+    </div>
+    <div class="ob-feat">
+      <svg class="ob-feat-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="9" cy="9" r="6"/>
+        <path d="M9 6v3.5l2 1.5"/>
+      </svg>
+      <div class="ob-feat-text">
+        <strong>Passive monitoring</strong>
+        Tracks timing and rhythm only — keystroke content is never read or stored.
+      </div>
+    </div>
+    <div class="ob-feat">
+      <svg class="ob-feat-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M9 3v6l3 3"/>
+        <circle cx="9" cy="9" r="6"/>
+      </svg>
+      <div class="ob-feat-text">
+        <strong>Break reminders</strong>
+        Sends a notification when your burnout score exceeds 80 / 100.
+      </div>
+    </div>
+  </div>
+
+  <div class="ob-setup">
+    <div class="ob-setup-row">
+      <div>
+        <div class="ob-setup-label">Accessibility permission</div>
+        <div class="ob-setup-desc">Required to measure typing intervals.</div>
+      </div>
+      <div class="ob-setup-badge pending" id="obBadge">Not granted</div>
+    </div>
+    <div class="ob-setup-divider"></div>
+    <button class="ob-setup-btn" onclick="openAccessibility()">Open System Settings → Privacy → Accessibility</button>
+  </div>
+
+  <button class="ob-cta" onclick="enterDash()">Start Monitoring</button>
+</div>
+
+<!-- ══════════ DASHBOARD ══════════ -->
+<div class="screen" id="dash">
+
+  <div class="header">
+    <span class="header-title">KAYA</span>
+    <div class="header-right">
+      <span class="local-badge" id="modeBadge"><span class="local-dot"></span>local only</span>
+    </div>
+  </div>
+
+  <!-- Training progress banner -->
+  <div class="train-banner" id="trainBanner">
+    <div class="train-label" id="trainLabel">Calibrating your baseline…</div>
+    <div class="train-info">
+      <div class="train-mode">
+        <span class="train-mode-label">Progress:</span>
+        <div class="train-progress-bar"><div class="train-progress-bar-fill" id="trainProgressBar"></div></div>
+        <span class="train-count" id="trainProgressCount">0%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Score -->
+  <div class="score-section">
+    <div class="score-num" id="scoreNum" style="color:var(--green)">0</div>
+    <div class="score-denom">out of 100</div>
+    <div class="score-status" id="scoreStatus"
+         style="background:rgba(34,197,94,.1);color:var(--green)">Warming up</div>
+  </div>
+
+  <!-- Sparkline -->
+  <div class="spark-section">
+    <div class="spark-inner">
+      <svg class="spark-svg" id="sparkSvg" preserveAspectRatio="none"></svg>
+    </div>
+  </div>
+
+  <!-- Signals -->
+  <div class="signals">
+    <div class="signal-row">
+      <span class="signal-name">Backspace rate</span>
+      <div class="signal-bar-wrap"><div class="signal-bar" id="sBar-bs"></div></div>
+      <span class="signal-val" id="sVal-bs">—</span>
+    </div>
+    <div class="signal-row">
+      <span class="signal-name">Rhythm irregularity</span>
+      <div class="signal-bar-wrap"><div class="signal-bar" id="sBar-rh"></div></div>
+      <span class="signal-val" id="sVal-rh">—</span>
+    </div>
+    <div class="signal-row">
+      <span class="signal-name">Pause density</span>
+      <div class="signal-bar-wrap"><div class="signal-bar" id="sBar-pa"></div></div>
+      <span class="signal-val" id="sVal-pa">—</span>
+    </div>
+    <div class="signal-row">
+      <span class="signal-name">Speed vs baseline</span>
+      <div class="signal-bar-wrap"><div class="signal-bar" id="sBar-sp"></div></div>
+      <span class="signal-val" id="sVal-sp">—</span>
+    </div>
+    <div class="signal-row">
+      <span class="signal-name">Frustration signals</span>
+      <div class="signal-bar-wrap"><div class="signal-bar" id="sBar-kw"></div></div>
+      <span class="signal-val" id="sVal-kw">—</span>
+    </div>
+  </div>
+
+  <!-- Activity feed -->
+  <div class="feed">
+    <div class="feed-head">
+      <span class="feed-title">Activity</span>
+    </div>
+    <div class="feed-body" id="feedBody">
+      <div class="feed-empty" id="feedEmpty">Watching for changes…</div>
+    </div>
+  </div>
+
+  <!-- Stats + actions -->
+  <div class="bottom">
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-lbl">Speed</div>
+        <div><span class="stat-val" id="wpmVal">—</span><span class="stat-unit">wpm</span></div>
+      </div>
+      <div class="stat">
+        <div class="stat-lbl">Keys / 5 min</div>
+        <div><span class="stat-val" id="keysVal">—</span></div>
+      </div>
+      <div class="stat">
+        <div class="stat-lbl">Pauses</div>
+        <div><span class="stat-val" id="pausesVal">—</span></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="action-btn primary" onclick="startBreak()">Take a break</button>
+      <button class="action-btn" onclick="activateDemo()">Demo</button>
+    </div>
+  </div>
+
+
+</div>
+
+<!-- Break overlay — outside #dash so position:fixed covers full viewport -->
+<div class="break-overlay" id="breakOverlay">
+  <div class="break-title">Take a break</div>
+  <div class="break-sub">Step away for a few minutes. Click the timer to change the duration.</div>
+  <input class="break-timer" id="breakTimer" type="text" value="5:00"
+         onblur="applyTimerInput(this.value)" onkeydown="if(event.key==='Enter'){this.blur();}">
+  <div class="break-timer-hint">click to edit</div>
+  <button class="break-dismiss" onclick="dismissBreak()">I'm back</button>
+</div>
+
+<script>
+const PORT = 9876;
+
+// ── routing ──────────────────────────────────────────────────────────────────
+function getQueryParam(param) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(param);
+}
+
+function enterDash() {
+  // Remember that the user has completed onboarding
+  localStorage.setItem('onboarded', '1');
+  document.getElementById('onboard').classList.add('hidden');
+  document.getElementById('dash').classList.remove('hidden');
+  // Set up menu bar icon (no longer hides the dashboard window)
+  fetch(`http://127.0.0.1:${PORT}/start-monitoring`).catch(() => {});
+  startPolling();
+}
+
+function showOnboard() {
+  document.getElementById('dash').classList.add('hidden');
+  document.getElementById('onboard').classList.remove('hidden');
+}
+
+// Check URL param first, then localStorage
+const view = getQueryParam('view');
+if (view === 'onboard') {
+  document.getElementById('onboard').classList.remove('hidden');
+  document.getElementById('dash').classList.add('hidden');
+} else if (view === 'dashboard') {
+  document.getElementById('onboard').classList.add('hidden');
+  document.getElementById('dash').classList.remove('hidden');
+  // Set up menu bar icon for returning users
+  fetch(`http://127.0.0.1:${PORT}/start-monitoring`).catch(() => {});
+  startPolling();
+} else {
+  // Always show onboarding on startup
+  document.getElementById('onboard').classList.remove('hidden');
+  document.getElementById('dash').classList.add('hidden');
+}
+
+function openAccessibility() {
+  fetch(`http://127.0.0.1:${PORT}/open-accessibility`).catch(() => {});
+}
+
+// ── color scale ──────────────────────────────────────────────────────────────
+function scoreColor(s) {
+  if (s >= 80) return 'var(--red)';
+  if (s >= 70) return 'var(--orange)';
+  if (s >= 50) return 'var(--yellow)';
+  return 'var(--green)';
+}
+function barColor(pct) {
+  if (pct >= 75) return 'var(--red)';
+  if (pct >= 50) return 'var(--orange)';
+  if (pct >= 25) return 'var(--yellow)';
+  return 'var(--green)';
+}
+
+const STATUS = [
+  [80, 'High burnout risk',   'rgba(239,68,68,.1)',    'var(--red)'],
+  [70, 'Stress detected',     'rgba(249,115,22,.1)',   'var(--orange)'],
+  [50, 'Mild fatigue',        'rgba(234,179,8,.1)',    'var(--yellow)'],
+  [ 0, 'Within normal range', 'rgba(34,197,94,.1)',    'var(--green)'],
+];
+function statusFor(s) { return STATUS.find(([t]) => s >= t) || STATUS[STATUS.length-1]; }
+
+// ── sparkline ────────────────────────────────────────────────────────────────
+const SPARK_N = 30;
+const sparkData = [];
+
+function updateSparkline(score) {
+  sparkData.push(score);
+  if (sparkData.length > SPARK_N) sparkData.shift();
+  const svg = document.getElementById('sparkSvg');
+  const W = 354, H = 36;
+  if (sparkData.length < 2) { svg.innerHTML = ''; return; }
+  const max = Math.max(20, ...sparkData);
+  const pts = sparkData.map((v, i) => {
+    const x = (i / (SPARK_N - 1)) * W;
+    const y = H - 4 - (v / max) * (H - 10);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  const col = scoreColor(score).replace('var(--','').replace(')','');
+  const colMap = { red:'#ef4444', orange:'#f97316', yellow:'#eab308', green:'#22c55e' };
+  const hex = colMap[col] || '#22c55e';
+  svg.innerHTML = `<polyline points="${pts.join(' ')}" fill="none" stroke="${hex}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" opacity=".7"/>`;
+}
+
+// ── signal rows ──────────────────────────────────────────────────────────────
+function setSignal(key, pct, label) {
+  const bar = document.getElementById(`sBar-${key}`);
+  const val = document.getElementById(`sVal-${key}`);
+  bar.style.width = Math.min(100, pct) + '%';
+  bar.style.background = barColor(pct);
+  val.textContent = label;
+}
+
+// ── activity feed ────────────────────────────────────────────────────────────
+const MAX_FEED = 20;
+const feedLog = [];
+let prevPts = null;
+
+const SIG_LABELS = {
+  bs: 'Backspace rate',
+  rh: 'Rhythm irregularity',
+  pa: 'Pause density',
+  sp: 'Speed drop',
+  kw: 'Frustration',
+};
+
+function nowHHMM() {
+  const d = new Date();
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+
+function pushFeedItem(msg, delta) {
+  const positive = delta > 0;
+  feedLog.unshift({ time: nowHHMM(), msg, delta, positive });
+  if (feedLog.length > MAX_FEED) feedLog.pop();
+  renderFeed();
+}
+
+function renderFeed() {
+  const body = document.getElementById('feedBody');
+  if (feedLog.length === 0) {
+    body.innerHTML = '<div class="feed-empty" id="feedEmpty">Watching for changes…</div>';
+    return;
+  }
+  body.innerHTML = feedLog.slice(0, 8).map(it => {
+    const sign  = it.positive ? '+' : '−';
+    const color = it.positive ? 'var(--orange)' : 'var(--green)';
+    return `<div class="feed-row">
+      <span class="feed-time">${it.time}</span>
+      <span class="feed-msg">${it.msg}</span>
+      <span class="feed-delta" style="color:${color}">${sign}${Math.abs(it.delta).toFixed(2)}</span>
+    </div>`;
+  }).join('');
+}
+
+let prevScore = 0;
+let lastKeywordAlert = '';
+
+function checkFeed(m) {
+  // Keyword alert: push immediately when new frustration words detected
+  if (m.keyword_alert && m.keyword_alert.length > 0) {
+    const alertKey = m.keyword_alert.join(',');
+    if (alertKey !== lastKeywordAlert) {
+      lastKeywordAlert = alertKey;
+      const words = m.keyword_alert.map(w => `"${w}"`).join(', ');
+      pushFeedItem(`Frustration: ${words}`, 5.0);
+    }
+  }
+
+  if (m.burnout_score === 0 && prevScore === 0) return;
+  const d = m.burnout_score - prevScore;
+  const threshold = 0.5;
+  if (Math.abs(d) >= threshold) {
+    if (d > 0) {
+      const reason = (m.active_reasons && m.active_reasons.length > 0)
+        ? m.active_reasons[0] + (m.active_reasons.length > 1 ? ` +${m.active_reasons.length - 1}` : '')
+        : 'Strain increasing';
+      pushFeedItem(reason, d);
+    } else {
+      pushFeedItem('Strain reducing', d);
+    }
+    prevScore = m.burnout_score;
+  }
+}
+
+// ── main update ──────────────────────────────────────────────────────────────
+
+function update(m) {
+  const s = m.burnout_score;
+  const col = scoreColor(s);
+  const [, label, bgc, tc] = statusFor(s);
+
+  // score number
+  const numEl = document.getElementById('scoreNum');
+  numEl.textContent = Math.round(s);
+  numEl.style.color = col;
+
+  // status badge
+  const st = document.getElementById('scoreStatus');
+  if (m.is_learning) {
+    st.textContent = "Learning patterns...";
+    st.style.background = "rgba(234,179,8,.1)";
+    st.style.color = "var(--yellow)";
+  } else {
+    st.textContent = label;
+    st.style.background = bgc;
+    st.style.color = tc;
+  }
+
+  updateSparkline(s);
+
+  // signal rows — always show live values
+  setSignal('bs', m.s_backspace, m.backspace_ratio.toFixed(1) + '%');
+  setSignal('rh', m.s_rhythm,    m.rhythm_cv.toFixed(2) + ' cv');
+  setSignal('pa', m.s_pauses,    m.pauses + ' pauses');
+  const speedLabel = m.baseline_wpm > 5
+    ? (m.baseline_wpm - m.current_wpm).toFixed(0) + ' wpm drop'
+    : m.current_wpm > 0 ? Math.round(m.current_wpm) + ' wpm' : '—';
+  setSignal('sp', m.s_speed, speedLabel);
+  setSignal('kw', m.s_keyword, m.s_keyword > 0 ? m.s_keyword.toFixed(0) + ' pts' : 'none');
+
+  // activity feed
+  if (m.is_learning) {
+    const body = document.getElementById('feedBody');
+    body.innerHTML = '<div class="feed-empty">Type a few words to begin…</div>';
+  } else {
+    checkFeed(m);
+  }
+
+  // stats — always live
+  document.getElementById('wpmVal').textContent    = m.current_wpm > 0 ? Math.round(m.current_wpm) : '—';
+  document.getElementById('keysVal').textContent   = m.total_keys  || '—';
+  document.getElementById('pausesVal').textContent = m.pauses      ?? '—';
+
+  // onboarding badge
+  if (m.total_keys > 0) {
+    const b = document.getElementById('obBadge');
+    b.textContent = 'Granted';
+    b.className = 'ob-setup-badge ok';
+  }
+}
+
+// ── break ────────────────────────────────────────────────────────────────────
+let breakTimer = null;
+let breakSeconds = 300;
+
+function startBreak() {
+  breakSeconds = 300;
+  tick(breakSeconds);
+  document.getElementById('breakOverlay').classList.add('show');
+  clearInterval(breakTimer);
+  breakTimer = setInterval(() => {
+    breakSeconds--;
+    tick(breakSeconds);
+    if (breakSeconds <= 0) dismissBreak();
+  }, 1000);
+}
+
+function tick(s) {
+  const mins = Math.floor(s / 60);
+  const secs = s % 60;
+  const el = document.getElementById('breakTimer');
+  if (el && el !== document.activeElement) {
+    el.value = mins + ':' + String(secs).padStart(2, '0');
+  }
+}
+
+function applyTimerInput(val) {
+  const match = val.match(/^(\d+):?(\d{0,2})$/);
+  if (match) {
+    const m = parseInt(match[1]) || 0;
+    const s = parseInt(match[2] || '0') || 0;
+    breakSeconds = m * 60 + s;
+    tick(breakSeconds);
+  } else {
+    tick(breakSeconds);
+  }
+}
+
+function dismissBreak() {
+  document.getElementById('breakOverlay').classList.remove('show');
+  clearInterval(breakTimer);
+}
+
+// ── reset ────────────────────────────────────────────────────────────────────
+function resetScore() {
+  sparkData.length = 0;
+  feedLog.length   = 0;
+  prevPts = null;
+  document.getElementById('scoreNum').textContent = '0';
+  document.getElementById('scoreNum').style.color = 'var(--green)';
+  document.getElementById('scoreStatus').textContent  = 'Score reset';
+  document.getElementById('scoreStatus').style.background = 'rgba(255,255,255,.05)';
+  document.getElementById('scoreStatus').style.color = 'var(--muted)';
+  document.getElementById('sparkSvg').innerHTML = '';
+  renderFeed();
+  fetch(`http://127.0.0.1:${PORT}/reset`).catch(() => {});
+}
+
+function quitApp() {
+  fetch(`http://127.0.0.1:${PORT}/quit`).catch(() => {});
+}
+
+// ── test keyboard ────────────────────────────────────────────────────────────
+let testCharCount = 0;
+let testInputElement = null;
+
+function showTestKeyboard() {
+  document.getElementById('testKeyboardOverlay').classList.add('show');
+  testInputElement = document.getElementById('testInput');
+  testInputElement.value = '';
+  testCharCount = 0;
+  updateTestStatus();
+
+  // Focus input
+  testInputElement.focus();
+
+  // Listen for keydown events directly (more reliable than input event)
+  testInputElement.addEventListener('keydown', handleTestKeydown, true);
+}
+
+async function handleTestKeydown(e) {
+  const char = e.key;
+
+  if (char && char.length === 1) {
+    testCharCount++;
+    updateTestStatus();
+
+    // Send to analyzer
+    try {
+      await fetch(`http://127.0.0.1:${PORT}/inject-event?char=${encodeURIComponent(char)}`);
+    } catch(err) {}
+  } else if (char === 'Backspace') {
+    testCharCount++;
+    updateTestStatus();
+    try {
+      await fetch(`http://127.0.0.1:${PORT}/inject-event?char=backspace`);
+    } catch(err) {}
+  }
+}
+
+function closeTestKeyboard() {
+  const overlay = document.getElementById('testKeyboardOverlay');
+  overlay.classList.remove('show');
+
+  if (testInputElement) {
+    testInputElement.removeEventListener('keydown', handleTestKeydown, true);
+  }
+
+  testCharCount = 0;
+}
+
+function updateTestStatus() {
+  document.getElementById('testStatus').textContent = `Characters sent: ${testCharCount}`;
+}
+
+// ── training & mode ──────────────────────────────────────────────────────────
+const MODE_ICONS = {
+  "code": "Coding",
+  "prose": "Writing",
+  "passive": "Watching",
+};
+
+function updateModeBadge(mode) {
+  const badge = document.getElementById('modeBadge');
+  badge.textContent = MODE_ICONS[mode] || mode;
+}
+
+function updateTrainingStatus(status) {
+  const banner = document.getElementById('trainBanner');
+  if (!banner) return;
+
+  const count = status.vectors_collected || 0;
+  const needed = status.vectors_needed || 100;
+  const pct = Math.min(100, Math.round((count / needed) * 100));
+
+  const bar = document.getElementById('trainProgressBar');
+  const cnt = document.getElementById('trainProgressCount');
+  const lbl = document.getElementById('trainLabel');
+
+  if (bar) bar.style.width = `${pct}%`;
+  if (cnt) cnt.textContent = `${pct}%`;
+  if (lbl) lbl.textContent = pct >= 100 ? 'Calibrated ✓' : 'Calibrating your baseline…';
+
+  banner.classList.toggle('hidden', count >= needed);
+}
+
+let demoModeActive = false;
+
+function activateDemo() {
+  const demoBtn = document.querySelector('button[onclick="activateDemo()"]');
+
+  if (demoModeActive) {
+    // Deactivate demo mode
+    fetch(`http://127.0.0.1:${PORT}/demo-mode?enable=0`)
+      .then(() => {
+        demoModeActive = false;
+        demoBtn.innerHTML = 'Demo';
+        demoBtn.style.color = 'var(--muted)';
+        demoBtn.disabled = false;
+        const banner = document.getElementById('trainBanner');
+        banner.classList.remove('hidden');
+      })
+      .catch(e => console.error('Demo mode error:', e));
+  } else {
+    // Activate demo mode
+    const originalText = demoBtn.textContent;
+    demoBtn.innerHTML = '<span class="demo-loading"></span>Activating...';
+    demoBtn.disabled = true;
+
+    fetch(`http://127.0.0.1:${PORT}/demo-mode?enable=1`)
+      .then(() => {
+        demoModeActive = true;
+        demoBtn.innerHTML = '<span class="demo-loading"></span>Demo Active';
+        demoBtn.style.color = 'var(--orange)';
+        demoBtn.disabled = false;
+        // Banner hides naturally once training reaches 100 vectors via polling
+      })
+      .catch(e => {
+        console.error('Demo mode error:', e);
+        demoBtn.innerHTML = originalText;
+        demoBtn.disabled = false;
+      });
+  }
+}
+
+// ── poll ─────────────────────────────────────────────────────────────────────
+let trainingComplete = false;
+
+function startPolling() {
+  // Show banner immediately
+  const banner = document.getElementById('trainBanner');
+  if (banner) banner.classList.remove('hidden');
+
+  poll();
+  setInterval(poll, 1000);  // Poll every 1 second for better performance
+}
+
+async function poll() {
+  try {
+    const r = await fetch(`http://127.0.0.1:${PORT}/training-status`);
+    if (r.ok) {
+      const status = await r.json();
+      updateTrainingStatus(status);
+      updateModeBadge(status.current_mode);
+    }
+    const m_res = await fetch(`http://127.0.0.1:${PORT}/metrics`);
+    if (m_res.ok) {
+      const m = await m_res.json();
+      update(m);
+    }
+  } catch(_) {}
+}
+</script>
+</body>
+</html>

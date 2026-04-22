@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaya Panel</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:       #0f1117;
+  --surface:  #181b22;
+  --border:   #252830;
+  --text:     #dde1ea;
+  --muted:    #5a5f6e;
+  --subtle:   #2a2d36;
+  --green:    #22c55e;
+  --yellow:   #eab308;
+  --orange:   #f97316;
+  --red:      #ef4444;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+  background: var(--bg);
+  user-select: none;
+}
+
+.panel-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  padding: 16px;
+  gap: 12px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.panel-score-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.panel-score-num {
+  font-size: 48px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -2px;
+  transition: color .4s ease;
+}
+
+.panel-score-label {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.panel-status {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 4px;
+  text-align: center;
+  transition: background .4s, color .4s;
+}
+
+.panel-stats {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.panel-stat {
+  flex: 1;
+  padding: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  text-align: center;
+}
+
+.panel-stat-label {
+  color: var(--muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  display: block;
+}
+
+.panel-stat-val {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  margin-top: 2px;
+}
+
+.panel-button {
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  text-align: center;
+}
+
+.panel-button:hover {
+  background: var(--subtle);
+  color: var(--text);
+}
+
+.panel-button:active {
+  background: #3a3d48;
+}
+
+.panel-mode {
+  font-size: 11px;
+  color: var(--muted);
+  padding: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  text-align: center;
+}
+
+</style>
+</head>
+<body>
+
+<div class="panel-container">
+  <div class="panel-header">
+    <span>KAYA</span>
+  </div>
+
+  <div class="panel-score-display">
+    <div class="panel-score-num" id="panelScoreNum" style="color: var(--green)">0</div>
+    <div class="panel-score-label">burnout score</div>
+    <div class="panel-status" id="panelStatus" style="background: rgba(34,197,94,.1); color: var(--green)">
+      Warming up
+    </div>
+  </div>
+
+  <div class="panel-stats">
+    <div class="panel-stat">
+      <span class="panel-stat-label">Mode</span>
+      <span class="panel-stat-val" id="panelMode">—</span>
+    </div>
+    <div class="panel-stat">
+      <span class="panel-stat-label">WPM</span>
+      <span class="panel-stat-val" id="panelWpm">—</span>
+    </div>
+  </div>
+
+  <div class="panel-mode" id="panelAppName">Unknown app</div>
+
+  <button class="panel-button" onclick="openDashboard()">Open Dashboard</button>
+  <button class="panel-button" onclick="takeBreak()">Take Break</button>
+</div>
+
+<script>
+const PORT = 9876;
+
+function scoreColor(s) {
+  if (s >= 80) return 'var(--red)';
+  if (s >= 70) return 'var(--orange)';
+  if (s >= 50) return 'var(--yellow)';
+  return 'var(--green)';
+}
+
+const STATUS = [
+  [80, 'High risk',      'rgba(239,68,68,.1)',    'var(--red)'],
+  [70, 'Stress',         'rgba(249,115,22,.1)',   'var(--orange)'],
+  [50, 'Mild fatigue',   'rgba(234,179,8,.1)',    'var(--yellow)'],
+  [ 0, 'Normal',         'rgba(34,197,94,.1)',    'var(--green)'],
+];
+function statusFor(s) { return STATUS.find(([t]) => s >= t) || STATUS[STATUS.length-1]; }
+
+function updatePanel(m) {
+  const s = m.burnout_score;
+  const col = scoreColor(s);
+  const [, label, bgc, tc] = statusFor(s);
+
+  document.getElementById('panelScoreNum').textContent = Math.round(s);
+  document.getElementById('panelScoreNum').style.color = col;
+
+  const st = document.getElementById('panelStatus');
+  st.textContent = label;
+  st.style.background = bgc;
+  st.style.color = tc;
+
+  document.getElementById('panelWpm').textContent = Math.round(m.current_wpm || 0);
+  document.getElementById('panelMode').textContent = m.current_mode === 'code' ? '💻' : 
+                                                      m.current_mode === 'prose' ? '✍️' : '👁';
+  document.getElementById('panelAppName').textContent = m.app_name || 'Unknown app';
+}
+
+function openDashboard() {
+  fetch(`http://127.0.0.1:${PORT}/show-dashboard`).catch(() => {});
+}
+
+function takeBreak() {
+  fetch(`http://127.0.0.1:${PORT}/reset`).catch(() => {});
+  updatePanel({burnout_score: 0, current_wpm: 0, current_mode: 'prose', app_name: 'unknown'});
+}
+
+function startPolling() {
+  poll();
+  setInterval(poll, 2000);
+}
+
+async function poll() {
+  try {
+    const r = await fetch(`http://127.0.0.1:${PORT}/metrics`);
+    if (r.ok) {
+      const m = await r.json();
+      updatePanel(m);
+    }
+  } catch(_) {}
+}
+
+startPolling();
+</script>
+
+</body>
+</html>
